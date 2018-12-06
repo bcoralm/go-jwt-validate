@@ -1,0 +1,10 @@
+{
+    "VPC": {
+        "SecurityGroup": "sg-05efc82cb6b58249a",
+        "SubNet1": "subnet-0796388d08ef2f128",
+        "SubNet2": "subnet-0ba508d7b2466beee"
+    },
+    "RSABucketName": "hs-rsa-certificates",
+    "RSAPrivateKeyName": "app.rsa",
+    "RSAPublicKeyName": "app.rsa.pub"
+}

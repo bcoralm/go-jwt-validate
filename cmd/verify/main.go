@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"os"
 
 	"code.pricetravel.com.mx/pltf/jwt.validate/pkg/rsa/s3"
@@ -27,13 +28,6 @@ func generatePolicy(principalID, effect, resource string) events.APIGatewayCusto
 			},
 		}
 	}
-
-	// Optional output with custom properties of the String, Number or Boolean type.
-	authResponse.Context = map[string]interface{}{
-		"stringKey":  "stringval",
-		"numberKey":  123,
-		"booleanKey": true,
-	}
 	return authResponse
 }
 
@@ -45,11 +39,14 @@ var (
 // Handler for AWS Lambda Function
 func Handler(ctx context.Context, event events.APIGatewayCustomAuthorizerRequest) (res events.APIGatewayCustomAuthorizerResponse, err error) {
 	t := event.AuthorizationToken
+	if t == ""  {
+		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("UNAUTHORIZED")
+	}
 	v, err := ts.Validate(t)
 	if v && err == nil {
 		return generatePolicy("user", "Allow", event.MethodArn), nil
 	}
-	return events.APIGatewayCustomAuthorizerResponse{}, err
+	return events.APIGatewayCustomAuthorizerResponse{}, errors.New("UNAUTHORIZED")
 }
 
 func main() {
@@ -58,5 +55,5 @@ func main() {
 
 func init() {
 	s3.S3Name = os.Getenv("RSABucket")
-	s3.PublicKeyName = "PUBKeyName"
+	s3.PublicKeyName = os.Getenv("PUBKeyName")
 }

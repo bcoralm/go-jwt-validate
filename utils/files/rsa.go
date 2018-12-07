@@ -2,7 +2,7 @@
 * Genarate rsa keys.
 */
 
-package files
+package main
 
 import (
 	"crypto/rand"

@@ -1,4 +1,4 @@
-service: jwt.verify
+service: jwt-auth
 
 provider:
   name: aws
@@ -6,21 +6,21 @@ provider:
   timeout: 10
   vpc:
     securityGroupIds:
-      - ${file(config-${opt:stage}.json):VPC.SecurityGroup}
+      - ${file(config.${opt:stage}.json):VPC.SecurityGroup}
     subnetIds:
-      - ${file(config-${opt:stage}.json):VPC.SubNet1}
-      - ${file(config-${opt:stage}.json):VPC.SubNet2}
+      - ${file(config.${opt:stage}.json):VPC.SubNet1}
+      - ${file(config.${opt:stage}.json):VPC.SubNet2}
   stage: ${opt:stage, 'dev'}
-  region: us-east-1
+  region: ${file(config.${opt:stage}.json):Region}
   iamRoleStatements:
     - Effect: "Allow"
       Action: "s3:*"
       Resource: 
-        - "arn:aws:s3:::${file(config-${opt:stage}.json):RSABucketName}/*"
+        - "arn:aws:s3:::${file(config.${opt:stage}.json):RSABucketName}/*"
   environment:
-    RSABucket: ${file(config-${opt:stage}.json):RSABucketName}
-    PRIVKeyName: ${file(config-${opt:stage}.json):RSAPrivateKeyName}
-    PUBKeyName: ${file(config-${opt:stage}.json):RSAPublicKeyName}
+    RSABucket: ${file(config.${opt:stage}.json):RSABucketName}
+    PRIVKeyName: ${file(config.${opt:stage}.json):RSAPrivateKeyName}
+    PUBKeyName: ${file(config.${opt:stage}.json):RSAPublicKeyName}
 
 package:
  artifact: bin/pt.pltf.aws.jwt.validate.zip
@@ -41,26 +41,3 @@ functions:
     #         parameters:
     #           paths:
     #             id: true
-
-resources:
-  Resources:
-    GatewayResponse:
-      Type: 'AWS::ApiGateway::GatewayResponse'
-      Properties:
-        ResponseParameters:
-          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
-          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
-        ResponseType: EXPIRED_TOKEN
-        RestApiId:
-          Ref: 'ApiGatewayRestApi'
-        StatusCode: '401'
-    AuthFailureGatewayResponse:
-      Type: 'AWS::ApiGateway::GatewayResponse'
-      Properties:
-        ResponseParameters:
-          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
-          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
-        ResponseType: UNAUTHORIZED
-        RestApiId:
-          Ref: 'ApiGatewayRestApi'
-        StatusCode: '401'

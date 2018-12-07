@@ -28,7 +28,7 @@ var (
 )
 
 const (
-	tf = "tmp.txt"
+	tf = "/tmp/key.txt"
 )
 
 type S3RSAProvider struct {
@@ -36,7 +36,7 @@ type S3RSAProvider struct {
 
 // GetSingKey retorna la llave privada, utilizada para firmar el token
 func (u *S3RSAProvider) GetSingKey() (*rsa.PrivateKey, error) {
-	signBytes,err := getFile(PrivateKeyName)
+	signBytes, err := getFile(PrivateKeyName)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (u *S3RSAProvider) GetSingKey() (*rsa.PrivateKey, error) {
 
 // GetVerifyKey retorna la llave public, utilizada para verificar el token
 func (u *S3RSAProvider) GetVerifyKey() (*rsa.PublicKey, error) {
-	verifyBytes,err := getFile(PublicKeyName)
+	verifyBytes, err := getFile(PublicKeyName)
 	if err != nil {
 		return nil, err
 	}
@@ -68,17 +68,18 @@ func getFile(keyName string) ([]byte, error) {
 	defer func() {
 		_ = f.Close()
 	}()
+	fmt.Printf("Downloading %v from %v", keyName, S3Name)
 	_, err = downloader.Download(f, &s3.GetObjectInput{
 		Bucket: aws.String(S3Name),
 		Key:    aws.String(keyName),
 	})
 	if err != nil {
-		return  nil, fmt.Errorf("failed to download file, %v", err)
+		return nil, fmt.Errorf("failed to download file, %v", err)
 	}
 	signBytes, err := ioutil.ReadAll(f)
 
 	if err != nil {
-		return  nil, fmt.Errorf("failed to read file, %v", err)
+		return nil, fmt.Errorf("failed to read file, %v", err)
 	}
-	return signBytes,nil
+	return signBytes, nil
 }

@@ -4,6 +4,7 @@
         "SubNet1": "subnet-0796388d08ef2f128",
         "SubNet2": "subnet-0ba508d7b2466beee"
     },
+    "Region": "us-east-1",
     "RSABucketName": "hs-rsa-certificates",
     "RSAPrivateKeyName": "app.rsa",
     "RSAPublicKeyName": "app.rsa.pub"

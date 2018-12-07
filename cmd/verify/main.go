@@ -39,14 +39,16 @@ var (
 // Handler for AWS Lambda Function
 func Handler(ctx context.Context, event events.APIGatewayCustomAuthorizerRequest) (res events.APIGatewayCustomAuthorizerResponse, err error) {
 	t := event.AuthorizationToken
-	if t == ""  {
-		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("UNAUTHORIZED")
+	if t == "" {
+		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Unauthorized")
 	}
 	v, err := ts.Validate(t)
 	if v && err == nil {
 		return generatePolicy("user", "Allow", event.MethodArn), nil
 	}
-	return events.APIGatewayCustomAuthorizerResponse{}, errors.New("UNAUTHORIZED")
+	return events.APIGatewayCustomAuthorizerResponse{Context: map[string]interface{}{
+		"error": "Err",
+	}}, errors.New("Unauthorized")
 }
 
 func main() {

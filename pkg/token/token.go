@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"code.pricetravel.com.mx/pltf/jwt.validate/pkg/rsa"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -13,13 +14,17 @@ import (
 type TokenService struct {
 	rsa rsa.RSAProvider
 }
+type CustomClaims struct {
+	jwt.StandardClaims
+	Audience  []string `json:"aud,omitempty"`
+}
 
 func NewTokenService(utiler rsa.RSAProvider) *TokenService {
 	return &TokenService{rsa: utiler}
 }
 
 // Validate try to parse a string token to jwt.Token and validate this
-func (t TokenService) Validate(tokenString string) (bool, error) {
+func (t *TokenService) Validate(tokenString string) (bool, error) {
 	tokenString = strings.Replace(tokenString, "Bearer", "", -1)
 	tokenString = strings.TrimSpace(tokenString)
 	key, err := t.rsa.GetVerifyKey()
@@ -50,23 +55,39 @@ func (t TokenService) Validate(tokenString string) (bool, error) {
 	return false, errors.New("Unauthorized")
 }
 
-// // NewToken create a new token string (use RSA256)
-// func (t TokenService) NewToken() string {
-// 	expires := time.Now().Add(time.Hour)
-// 	// Create the Claims
-// 	claims := &jwt.StandardClaims{
-// 		ExpiresAt: expires.Unix(),
-// 		Issuer:    "pricetravel.com.mx",
-// 	}
-// 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+// ValidateExpiration Only validate token expiration time
+func (t *TokenService) ValidateExpiration(tokenString string) (*jwt.Token,bool) {
+	tokenString = strings.Replace(tokenString, "Bearer", "", -1)
+	tokenString = strings.TrimSpace(tokenString)
+	var p jwt.Parser
+	token, _, err := p.ParseUnverified(tokenString, &CustomClaims{})
+	if token == nil || err != nil {
+		fmt.Print("No se pudo parsear el token", err)
+		return nil, false
+	}
+	if claims, ok := token.Claims.(*CustomClaims); ok {
+		return token, claims.StandardClaims.VerifyExpiresAt(time.Now().Unix(),false)
+	}
+	return nil, false
+}
 
-// 	signedKey, err := t.rsa.GetSingKey()
-// 	if err != nil {
-// 		fmt.Print("No se pudo obtener la SignedKey", err)
-// 	}
-// 	ss, err := token.SignedString(signedKey)
-// 	if err != nil {
-// 		fmt.Print("No se pudo generar el token", err)
-// 	}
-// 	return ss
-// }
+// NewToken create a new token string (use RSA256)
+func (t TokenService) NewToken() string {
+	expires := time.Now().Add(time.Hour)
+	// Create the Claims
+	claims := &jwt.StandardClaims{
+		ExpiresAt: expires.Unix(),
+		Issuer:    "pricetravel.com.mx",
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+
+	signedKey, err := t.rsa.GetSingKey()
+	if err != nil {
+		fmt.Print("No se pudo obtener la SignedKey", err)
+	}
+	ss, err := token.SignedString(signedKey)
+	if err != nil {
+		fmt.Print("No se pudo generar el token", err)
+	}
+	return ss
+}

@@ -80,6 +80,14 @@ func TestParse_ErrorVerifyKey(t *testing.T) {
 	}
 }
 
+func TestToken_ValidateExpiration(t *testing.T) {
+	tokenString := "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IlRWMkowd1piRFd5Z2FjaGh4UWRJQTBtallndyIsImtpZCI6IlRWMkowd1piRFd5Z2FjaGh4UWRJQTBtallndyJ9.eyJpc3MiOiJodHRwOi8vd3d3LmF1dGhlbnRpY2F0aW9uc2VydmljZS5jb20ubXgiLCJleHAiOjE1NDYyOTg1NTEsIm5iZiI6MTU0NDQ4NDE1MSwiYXVkIjpbImh0dHA6Ly93d3cuYXV0aGVudGljYXRpb25zZXJ2aWNlLmNvbS5teC9yZXNvdXJjZXMiLCJjb25maWd1cmF0aW9uYXBpc2NvcGUiXSwiY2xpZW50X2lkIjoiY29uZmlndXJhdGlvbmFwaSIsImNsaWVudF9yb2xlIjpbInJlYWQiLCJBZG1pbiJdLCJzY29wZSI6ImNvbmZpZ3VyYXRpb25hcGlzY29wZSJ9.dltfC4O161KrsrBqZFVNrecTsTSKFJI5OIaFlkmI9J4Xp6wd6Pz7mBY8UFN0Mtijz9ucNQdx9xjtU230bp3bm6f-ueGeiGe55J-oUq6uwi_Fult2iofVXzV_sqaXkCGJ2m6BoiQiVVRvosxUf62rdTvM8pmN_kUyfz6LxoAug-CmOEiSPgRk3EYX63rJDS2pfDRXj_KAoM-1_Ag7vijTB4ju_07g3_Wd7xYG4COGS2VOvcQEi72_FnQCQRUg5ZALd7S2jZ7QH8VAE5Ndjzt8Rbv9WXbeiVlA7lOJJcBeouXvoF1P4ohDeaW0nUqhM6q6V2gxis2DvED8rwAnU-wHJw"
+	tkn, valid := ts.ValidateExpiration(tokenString)
+	if tkn == nil  || !valid {
+		t.Error("Invalid token")
+	}
+}
+
 func init() {
 	local.PrivKeyPath = "../../utils/files/app.rsa"
 	local.PubKeyPath = "../../utils/files/app.rsa.pub"

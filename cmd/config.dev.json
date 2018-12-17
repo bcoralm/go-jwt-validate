@@ -7,5 +7,7 @@
     "Region": "us-east-1",
     "RSABucketName": "hs-rsa-certificates",
     "RSAPrivateKeyName": "app.rsa",
-    "RSAPublicKeyName": "app.rsa.pub"
+    "RSAPublicKeyName": "app.rsa.pub",
+    "IssuerToValidate":"http://www.authenticationservice.com.mx",
+    "APIToValidate": "arn:aws:execute-api:us-east-1:069679264462:0hdc7vbyg4/*/GET/ratesbyhotelid"
 }

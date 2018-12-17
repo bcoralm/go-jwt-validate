@@ -3,39 +3,35 @@ package token
 import (
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
+	helper "code.pricetravel.com.mx/pltf/jwt.validate/helpers/jwk"
 	"code.pricetravel.com.mx/pltf/jwt.validate/pkg/rsa"
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-type TokenService struct {
+// Service Service
+type Service struct {
 	rsa rsa.RSAProvider
 }
+
+// CustomClaims Custom CLaims
 type CustomClaims struct {
 	jwt.StandardClaims
-	Audience  []string `json:"aud,omitempty"`
+	Audience []string `json:"aud,omitempty"`
 }
 
-func NewTokenService(utiler rsa.RSAProvider) *TokenService {
-	return &TokenService{rsa: utiler}
+// NewTokenService get service
+func NewTokenService(utiler rsa.RSAProvider) *Service {
+	return &Service{rsa: utiler}
 }
 
 // Validate try to parse a string token to jwt.Token and validate this
-func (t *TokenService) Validate(tokenString string) (bool, error) {
+func (t *Service) Validate(tokenString string) (bool, error) {
 	tokenString = strings.Replace(tokenString, "Bearer", "", -1)
 	tokenString = strings.TrimSpace(tokenString)
-	key, err := t.rsa.GetVerifyKey()
-	if err != nil {
-		log.Print("Error al traer la llave de verificacion", err)
-		return false, errors.New("Error al traer la llave de verificacion")
-	}
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return key, nil
-	})
-
+	token, err := jwt.Parse(tokenString, helper.GetRsaPublicKey)
 	if token == nil {
 		return false, errors.New("No se pudo parsear el token")
 	}
@@ -56,7 +52,7 @@ func (t *TokenService) Validate(tokenString string) (bool, error) {
 }
 
 // ValidateExpiration Only validate token expiration time
-func (t *TokenService) ValidateExpiration(tokenString string) (*jwt.Token,bool) {
+func (t *Service) ValidateExpiration(tokenString string) (*jwt.Token, bool) {
 	tokenString = strings.Replace(tokenString, "Bearer", "", -1)
 	tokenString = strings.TrimSpace(tokenString)
 	var p jwt.Parser
@@ -66,13 +62,13 @@ func (t *TokenService) ValidateExpiration(tokenString string) (*jwt.Token,bool) 
 		return nil, false
 	}
 	if claims, ok := token.Claims.(*CustomClaims); ok {
-		return token, claims.StandardClaims.VerifyExpiresAt(time.Now().Unix(),false)
+		return token, claims.StandardClaims.VerifyExpiresAt(time.Now().Unix(), false)
 	}
 	return nil, false
 }
 
 // NewToken create a new token string (use RSA256)
-func (t TokenService) NewToken() string {
+func (t *Service) NewToken() string {
 	expires := time.Now().Add(time.Hour)
 	// Create the Claims
 	claims := &jwt.StandardClaims{
